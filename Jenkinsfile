@@ -2,16 +2,18 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                echo 'Code checkout is handled by Jenkins'
-            }
-        }
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['development', 'production'],
+            description: 'Choose the target environment'
+        )
+    }
 
-        stage('Install Dependencies') {
+    stages {
+        stage('Show Configuration') {
             steps {
-                sh 'python3 --version'
+                echo "Selected environment: ${params.ENVIRONMENT}"
             }
         }
 
