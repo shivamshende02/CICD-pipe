@@ -1,27 +1,17 @@
 
-pipeline {
-    agent any
-
-    stages {
-        stage('Checkout') {
+        stage('SonarQube Analysis') {
             steps {
-                echo 'Source code has been checked out by Jenkins'
-                sh 'git rev-parse --short HEAD'
+                script {
+                    def scannerHome = tool 'SonarScanner'
+                    withSonarQubeEnv('Company-SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=jenkins-python-practice \
+                            -Dsonar.sources=. \
+                            -Dsonar.exclusions=**/test_*.py \
+                            -Dsonar.sourceEncoding=UTF-8
+                        """
+                    }
+                }
             }
         }
-
-        stage('Build') {
-            steps {
-                echo 'Checking the Python runtime'
-                sh 'python3 --version'
-                sh 'python3 -m py_compile calculator.py test_calculator.py'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'python3 test_calculator.py'
-            }
-        }
-    }
-}
