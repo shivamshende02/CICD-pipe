@@ -65,7 +65,7 @@ stage('Unit Tests') {
 }
 
 
-        ```groovy
+        
 stage('Integration Tests') {
     steps {
         sh '''
