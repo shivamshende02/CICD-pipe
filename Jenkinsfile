@@ -86,7 +86,7 @@ stage('Integration Tests') {
         }
     }
 }
-```
+
         stage('SonarQube Analysis') {
             steps {
                 script {
