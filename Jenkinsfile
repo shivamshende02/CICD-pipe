@@ -30,24 +30,30 @@ pipeline {
             }
         }
 
-        stage('Unit Tests') {
-            steps {
-                sh 'python3 -m pip install -r requirements-dev.txt'
-                sh 'mkdir -p test-results'
-                sh 'python3 -m pytest -v test_calculator.py --junitxml=test-results/unit-tests.xml'
-            }
-            post {
-                always {
-                    script {
-                        if (fileExists('test-results/unit-tests.xml')) {
-                            junit 'test-results/unit-tests.xml'
-                        } else {
-                            echo 'Unit test report was not generated.'
-                        }
-                    }
+        
+stage('Unit Tests') {
+    steps {
+        sh '''
+            python3 -m venv .venv
+            .venv/bin/python -m pip install -r requirements-dev.txt
+            mkdir -p test-results
+            .venv/bin/python -m pytest -v test_calculator.py \
+                --junitxml=test-results/unit-tests.xml
+        '''
+    }
+    post {
+        always {
+            script {
+                if (fileExists('test-results/unit-tests.xml')) {
+                    junit 'test-results/unit-tests.xml'
+                } else {
+                    echo 'Unit test report was not generated.'
                 }
             }
         }
+    }
+}
+
 
         stage('Integration Tests') {
             steps {
