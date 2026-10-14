@@ -19,23 +19,48 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo 'Checking Python syntax'
+                echo 'Checking Python runtime and syntax'
                 sh 'python3 --version'
-                sh 'python3 -m py_compile calculator.py test_calculator.py'
+                sh 'python3 -m py_compile calculator.py test_calculator.py test_integration.py'
             }
         }
 
-        
+        stage('Unit Tests') {
+            steps {
+                sh 'python3 -m pip install -r requirements-dev.txt'
+                sh 'mkdir -p test-results'
+                sh 'python3 -m pytest -v test_calculator.py --junitxml=test-results/unit-tests.xml'
+            }
+            post {
+                always {
+                    script {
+                        if (fileExists('test-results/unit-tests.xml')) {
+                            junit 'test-results/unit-tests.xml'
+                        } else {
+                            echo 'Unit test report was not generated.'
+                        }
+                    }
+                }
+            }
+        }
 
-stage('Python Environment Check') {
-    steps {
-        sh 'python3 --version'
-        sh 'command -v pip3 || true'
-        sh 'python3 -m venv --help'
-        sh 'command -v uv || true'
-    }
-}
-
+        stage('Integration Tests') {
+            steps {
+                sh 'mkdir -p test-results'
+                sh 'python3 -m pytest -v test_integration.py --junitxml=test-results/integration-tests.xml'
+            }
+            post {
+                always {
+                    script {
+                        if (fileExists('test-results/integration-tests.xml')) {
+                            junit 'test-results/integration-tests.xml'
+                        } else {
+                            echo 'Integration test report was not generated.'
+                        }
+                    }
+                }
+            }
+        }
 
         stage('SonarQube Analysis') {
             steps {
@@ -48,7 +73,7 @@ stage('Python Environment Check') {
                             -Dsonar.projectKey=jenkins-python-practice \
                             -Dsonar.projectName=jenkins-python-practice \
                             -Dsonar.sources=. \
-                            -Dsonar.exclusions=**/test_*.py,**/.git/** \
+                            -Dsonar.exclusions=**/test_*.py,**/.git/**,test-results/** \
                             -Dsonar.sourceEncoding=UTF-8
                         """
                     }
