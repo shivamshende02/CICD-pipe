@@ -65,24 +65,28 @@ stage('Unit Tests') {
 }
 
 
-        stage('Integration Tests') {
-            steps {
-                sh 'mkdir -p test-results'
-                sh 'python3 -m pytest -v test_integration.py --junitxml=test-results/integration-tests.xml'
-            }
-            post {
-                always {
-                    script {
-                        if (fileExists('test-results/integration-tests.xml')) {
-                            junit 'test-results/integration-tests.xml'
-                        } else {
-                            echo 'Integration test report was not generated.'
-                        }
-                    }
+        ```groovy
+stage('Integration Tests') {
+    steps {
+        sh '''
+            mkdir -p test-results
+            .venv/bin/python -m pytest -v test_integration.py \
+                --junitxml=test-results/integration-tests.xml
+        '''
+    }
+    post {
+        always {
+            script {
+                if (fileExists('test-results/integration-tests.xml')) {
+                    junit 'test-results/integration-tests.xml'
+                } else {
+                    echo 'Integration test report was not generated.'
                 }
             }
         }
-
+    }
+}
+```
         stage('SonarQube Analysis') {
             steps {
                 script {
