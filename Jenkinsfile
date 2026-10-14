@@ -22,6 +22,10 @@ pipeline {
             steps {
                 echo 'Checking Python runtime and syntax'
                 sh 'python3 --version'
+                sh 'python3 --version'
+                sh 'command -v pip3 || true'
+                sh 'python3 -m venv --help'
+                sh 'command -v uv || true'
                 sh 'python3 -m py_compile calculator.py test_calculator.py test_integration.py'
             }
         }
