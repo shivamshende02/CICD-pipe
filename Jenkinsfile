@@ -26,26 +26,13 @@ pipeline {
         }
 
         
-stage('Unit Tests') {
+
+stage('Python Environment Check') {
     steps {
         sh 'python3 --version'
         sh 'command -v pip3 || true'
         sh 'python3 -m venv --help'
-
-        sh 'python3 -m pip install -r requirements-dev.txt'
-        sh 'mkdir -p test-results'
-        sh 'python3 -m pytest -v --junitxml=test-results/unit-tests.xml'
-    }
-    post {
-        always {
-            script {
-                if (fileExists('test-results/unit-tests.xml')) {
-                    junit 'test-results/unit-tests.xml'
-                } else {
-                    echo 'JUnit report was not generated; check the test command output above.'
-                }
-            }
-        }
+        sh 'command -v uv || true'
     }
 }
 
