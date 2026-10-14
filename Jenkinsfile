@@ -9,6 +9,7 @@ pipeline {
             description: 'Choose the target environment'
         )
     }
+    
 
     stages {
         stage('Show Configuration') {
