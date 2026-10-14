@@ -17,9 +17,43 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
+        stage('Build') {
             steps {
-                sh 'python3 test_calculator.py'
+                echo 'Checking Python syntax'
+                sh 'python3 --version'
+                sh 'python3 -m py_compile calculator.py test_calculator.py'
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                sh 'python3 -m pip install -r requirements-dev.txt'
+                sh 'mkdir -p test-results'
+                sh 'python3 -m pytest -v --junitxml=test-results/unit-tests.xml'
+            }
+            post {
+                always {
+                    junit 'test-results/unit-tests.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarScanner'
+
+                    withSonarQubeEnv('Test-sonarcube') {
+                        sh """
+                            '${scannerHome}/bin/sonar-scanner' \
+                            -Dsonar.projectKey=jenkins-python-practice \
+                            -Dsonar.projectName=jenkins-python-practice \
+                            -Dsonar.sources=. \
+                            -Dsonar.exclusions=**/test_*.py,**/.git/** \
+                            -Dsonar.sourceEncoding=UTF-8
+                        """
+                    }
+                }
             }
         }
     }
