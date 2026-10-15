@@ -17,6 +17,14 @@ pipeline {
                 echo "Selected environment: ${params.ENVIRONMENT}"
             }
         }
+        stage('Docker Environment Check') {
+    steps {
+        sh '''
+            docker --version
+            docker info
+        '''
+    }
+}
 
         stage('Build') {
             steps {
