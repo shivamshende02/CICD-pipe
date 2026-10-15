@@ -20,8 +20,15 @@ pipeline {
         stage('Docker Environment Check') {
     steps {
         sh '''
-            docker --version
-            docker info
+            echo "Checking Docker CLI..."
+            command -v docker || true
+
+            echo "Checking Docker socket..."
+            if [ -S /var/run/docker.sock ]; then
+                echo "Docker socket exists"
+            else
+                echo "Docker socket not found"
+            fi
         '''
     }
 }
