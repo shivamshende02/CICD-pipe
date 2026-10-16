@@ -20,21 +20,28 @@ pipeline {
         
 
 
+
 stage('Docker Build and Test') {
     steps {
         sh '''
             set -eu
 
-            echo "Preparing directory for test reports..."
             mkdir -p "$WORKSPACE/test-results/docker"
 
-            echo "Building calculator test image..."
+            echo "Building Docker image..."
             docker build -t calculator-test:${BUILD_NUMBER} .
+
+            echo "Checking report directory before tests..."
+            ls -la "$WORKSPACE/test-results/docker"
 
             echo "Running tests inside Docker..."
             docker run --rm \
                 -v "$WORKSPACE/test-results/docker:/reports" \
                 calculator-test:${BUILD_NUMBER}
+
+            echo "Checking report directory after tests..."
+            ls -la "$WORKSPACE/test-results/docker"
+            test -s "$WORKSPACE/test-results/docker/test-results.xml"
         '''
     }
 
@@ -47,6 +54,7 @@ stage('Docker Build and Test') {
         }
     }
 }
+
 
 
         
