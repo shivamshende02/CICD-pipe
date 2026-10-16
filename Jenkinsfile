@@ -24,6 +24,7 @@ stage('Docker Environment Check') {
             docker --version
             docker info
         '''
+        sh 'docker run --rm python:3.12-slim python --version'
     }
 }
 
