@@ -18,37 +18,25 @@ pipeline {
         }
 
         stage('Docker Build and Test') {
-            steps {
-                sh '''
-                    set -eu
+    steps {
+        sh '''
+            set -eu
 
-                    mkdir -p "$WORKSPACE/test-results/docker"
+            mkdir -p "$WORKSPACE/test-results/docker"
 
-                    echo "Building Docker image..."
-                    docker build -t calculator-test:${BUILD_NUMBER} .
+            docker build -t calculator-test:${BUILD_NUMBER} .
 
-                    echo "Checking report directory before diagnostic..."
-                    ls -la "$WORKSPACE/test-results/docker"
+            docker run --rm \
+                -v "$WORKSPACE/test-results/docker:/reports" \
+                --entrypoint sh \
+                calculator-test:${BUILD_NUMBER} \
+                -c 'echo "mount works" > /reports/mount-check.txt && ls -la /reports'
 
-                    echo "Testing Docker bind mount..."
-                    docker run --rm \
-                        -v "$WORKSPACE/test-results/docker:/reports" \
-                        --entrypoint sh \
-                        calculator-test:${BUILD_NUMBER} \
-                        -c 'echo "mount works" > /reports/mount-check.txt && ls -la /reports'
-
-                    echo "Files visible in Jenkins workspace:"
-                    ls -la "$WORKSPACE/test-results/docker"
-
-                    if [ -f "$WORKSPACE/test-results/docker/mount-check.txt" ]; then
-                        echo "SUCCESS: Docker bind mount works."
-                    else
-                        echo "FAILURE: Diagnostic file is missing from Jenkins workspace."
-                        exit 1
-                    fi
-                '''
-            }
-        }
+            echo "Files visible in Jenkins workspace:"
+            ls -la "$WORKSPACE/test-results/docker"
+        '''
+    }
+}
 
         stage('SonarQube Analysis') {
             steps {
