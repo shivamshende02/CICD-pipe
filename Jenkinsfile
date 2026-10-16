@@ -19,17 +19,32 @@ pipeline {
         }
         
 
+
 stage('Docker Build and Test') {
     steps {
         sh '''
             set -eu
 
+            echo "Preparing directory for test reports..."
+            mkdir -p "$WORKSPACE/test-results/docker"
+
             echo "Building calculator test image..."
             docker build -t calculator-test:${BUILD_NUMBER} .
 
-            echo "Running tests inside the container..."
-            docker run --rm calculator-test:${BUILD_NUMBER}
+            echo "Running tests inside Docker..."
+            docker run --rm \
+                -v "$WORKSPACE/test-results/docker:/reports" \
+                calculator-test:${BUILD_NUMBER}
         '''
+    }
+
+    post {
+        always {
+            junit(
+                testResults: 'test-results/docker/test-results.xml',
+                allowEmptyResults: true
+            )
+        }
     }
 }
 
