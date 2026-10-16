@@ -18,15 +18,21 @@ pipeline {
             }
         }
         
-stage('Docker Environment Check') {
+
+stage('Docker Build and Test') {
     steps {
         sh '''
-            docker --version
-            docker info
+            set -eu
+
+            echo "Building calculator test image..."
+            docker build -t calculator-test:${BUILD_NUMBER} .
+
+            echo "Running tests inside the container..."
+            docker run --rm calculator-test:${BUILD_NUMBER}
         '''
-        sh 'docker run --rm python:3.12-slim python --version'
     }
 }
+
 
         stage('Build') {
             steps {
