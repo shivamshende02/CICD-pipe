@@ -1,3 +1,4 @@
+
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -9,4 +10,4 @@ COPY calculator.py test_calculator.py test_integration.py ./
 
 RUN python -m compileall -q calculator.py test_calculator.py test_integration.py
 
-CMD ["python", "-m", "pytest", "-v", "test_calculator.py", "test_integration.py"]
+CMD ["python", "-m", "pytest", "-v", "--junitxml=/reports/test-results.xml", "test_calculator.py", "test_integration.py"]
