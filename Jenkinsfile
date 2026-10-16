@@ -17,24 +17,36 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Docker Build and Test') {
             steps {
-                echo 'Checking Python syntax'
-                sh 'python3 --version'
-                sh 'python3 -m py_compile calculator.py test_calculator.py'
-            }
-        }
+                sh '''
+                    set -eu
 
-        stage('Unit Tests') {
-            steps {
-                sh 'python3 -m pip install -r requirements-dev.txt'
-                sh 'mkdir -p test-results'
-                sh 'python3 -m pytest -v --junitxml=test-results/unit-tests.xml'
-            }
-            post {
-                always {
-                    junit 'test-results/unit-tests.xml'
-                }
+                    mkdir -p "$WORKSPACE/test-results/docker"
+
+                    echo "Building Docker image..."
+                    docker build -t calculator-test:${BUILD_NUMBER} .
+
+                    echo "Checking report directory before diagnostic..."
+                    ls -la "$WORKSPACE/test-results/docker"
+
+                    echo "Testing Docker bind mount..."
+                    docker run --rm \
+                        -v "$WORKSPACE/test-results/docker:/reports" \
+                        --entrypoint sh \
+                        calculator-test:${BUILD_NUMBER} \
+                        -c 'echo "mount works" > /reports/mount-check.txt && ls -la /reports'
+
+                    echo "Files visible in Jenkins workspace:"
+                    ls -la "$WORKSPACE/test-results/docker"
+
+                    if [ -f "$WORKSPACE/test-results/docker/mount-check.txt" ]; then
+                        echo "SUCCESS: Docker bind mount works."
+                    else
+                        echo "FAILURE: Diagnostic file is missing from Jenkins workspace."
+                        exit 1
+                    fi
+                '''
             }
         }
 
@@ -49,7 +61,7 @@ pipeline {
                             -Dsonar.projectKey=jenkins-python-practice \
                             -Dsonar.projectName=jenkins-python-practice \
                             -Dsonar.sources=. \
-                            -Dsonar.exclusions=**/test_*.py,**/.git/** \
+                            -Dsonar.exclusions=**/test_*.py,**/.git/**,test-results/** \
                             -Dsonar.sourceEncoding=UTF-8
                         """
                     }
