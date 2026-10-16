@@ -17,18 +17,12 @@ pipeline {
                 echo "Selected environment: ${params.ENVIRONMENT}"
             }
         }
-        stage('Docker Environment Check') {
+        
+stage('Docker Environment Check') {
     steps {
         sh '''
-            echo "Checking Docker CLI..."
-            command -v docker || true
-
-            echo "Checking Docker socket..."
-            if [ -S /var/run/docker.sock ]; then
-                echo "Docker socket exists"
-            else
-                echo "Docker socket not found"
-            fi
+            docker --version
+            docker info
         '''
     }
 }
