@@ -9,7 +9,6 @@ pipeline {
             description: 'Choose the target environment'
         )
     }
-    
 
     stages {
         stage('Show Configuration') {
@@ -17,43 +16,41 @@ pipeline {
                 echo "Selected environment: ${params.ENVIRONMENT}"
             }
         }
-        
 
+        stage('Docker Build and Test') {
+            steps {
+                sh '''
+                    set -eu
 
+                    mkdir -p "$WORKSPACE/test-results/docker"
 
-stage('Docker Build and Test') {
-    steps {
-        sh '''
-            set -eu
+                    echo "Building Docker image..."
+                    docker build -t calculator-test:${BUILD_NUMBER} .
 
-            mkdir -p "$WORKSPACE/test-results/docker"
+                    echo "Running tests inside Docker..."
+                    docker run --rm \
+                        -v "$WORKSPACE/test-results/docker:/reports" \
+                        calculator-test:${BUILD_NUMBER}
 
-            echo "Building Docker image..."
-            docker build -t calculator-test:${BUILD_NUMBER} .
+                    echo "Checking test report..."
+                    test -s "$WORKSPACE/test-results/docker/test-results.xml"
+                '''
+            }
 
-            echo "Checking report directory before tests..."
-            ls -la "$WORKSPACE/test-results/docker"
+            post {
+                always {
+                    junit(
+                        testResults: 'test-results/docker/test-results.xml',
+                        allowEmptyResults: true
+                    )
 
-            echo "Running tests inside Docker..."
-            docker run --rm \
-                -v "$WORKSPACE/test-results/docker" \
-                calculator-test:${BUILD_NUMBER}
-        '''
-    }
-
-    post {
-    always {
-        
-
-        archiveArtifacts artifacts: 'test-results/**/*.xml',
-                         allowEmptyArchive: true
-    }
-}
-}
-
-
-
-        
+                    archiveArtifacts(
+                        artifacts: 'test-results/**/*.xml',
+                        allowEmptyArchive: true
+                    )
+                }
+            }
+        }
 
         stage('SonarQube Analysis') {
             steps {
@@ -70,6 +67,43 @@ stage('Docker Build and Test') {
                             -Dsonar.sourceEncoding=UTF-8
                         """
                     }
+                }
+            }
+        }
+
+        stage('Push Image to Docker Hub') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set -eu
+                        set +x
+
+                        IMAGE="automatonai/calculator-app:build-${BUILD_NUMBER}"
+
+                        trap 'docker logout >/dev/null 2>&1 || true' EXIT
+
+                        echo "Logging in to Docker Hub..."
+                        printf '%s' "$DOCKERHUB_TOKEN" |
+                            docker login \
+                                --username "$DOCKERHUB_USERNAME" \
+                                --password-stdin
+
+                        echo "Tagging tested image..."
+                        docker tag \
+                            "calculator-test:${BUILD_NUMBER}" \
+                            "$IMAGE"
+
+                        echo "Pushing image: $IMAGE"
+                        docker push "$IMAGE"
+
+                        echo "Image pushed successfully."
+                    '''
                 }
             }
         }
