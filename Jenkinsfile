@@ -81,10 +81,7 @@ pipeline {
 
                         
                         echo "Logging in to Docker Hub..."
-                        echo 'dckr_pat_6EODIKSK2WvAJ-pYnz2mMINeZkQ'
-                         |
-                            docker login -u automatonai\
-                                --password-stdin
+                        echo 'dckr_pat_6EODIKSK2WvAJ-pYnz2mMINeZkQ' | docker login -u "automatonai" --password-stdin
 
                         echo "Tagging tested image..."
                         docker tag \
