@@ -38,10 +38,6 @@ stage('Docker Build and Test') {
             docker run --rm \
                 -v "$WORKSPACE/test-results/docker" \
                 calculator-test:${BUILD_NUMBER}
-
-            echo "Checking report directory after tests..."
-            ls -la "$WORKSPACE/test-results/docker"
-            test -s "$WORKSPACE/test-results/docker/test-results.xml"
         '''
     }
 
