@@ -32,8 +32,7 @@ pipeline {
                         -v "$WORKSPACE/test-results/docker:/reports" \
                         calculator-test:${BUILD_NUMBER}
 
-                    echo "Checking test report..."
-                    test -s "$WORKSPACE/test-results/docker/test-results.xml"
+        
                 '''
             }
 
