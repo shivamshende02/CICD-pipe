@@ -72,7 +72,7 @@ pipeline {
 
         stage('Push Image to Docker Hub') {
             steps {
-                 {
+                 
                     sh '''
                         
                         set +x
@@ -97,7 +97,7 @@ pipeline {
                         echo "Image pushed successfully."
                     '''
                 }
-            }
+            
         }
             }
         }
