@@ -74,13 +74,12 @@ pipeline {
             steps {
                  {
                     sh '''
-                        set -eu
+                        
                         set +x
 
                         IMAGE="automatonai/calculator-app:build-${BUILD_NUMBER}"
 
-                        trap 'docker logout >/dev/null 2>&1 || true' EXIT
-
+                        
                         echo "Logging in to Docker Hub..."
                         echo 'dckr_pat_6EODIKSK2WvAJ-pYnz2mMINeZkQ'
                          |
