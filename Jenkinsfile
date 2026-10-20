@@ -88,9 +88,9 @@ pipeline {
                         trap 'docker logout >/dev/null 2>&1 || true' EXIT
 
                         echo "Logging in to Docker Hub..."
-                        echo "$DOCKER_PASSWORD"
+                        echo 'dckr_pat_6EODIKSK2WvAJ-pYnz2mMINeZkQ'
                          |
-                            docker login -u "$DOCKER_USERNAME"\
+                            docker login -u automatonai\
                                 --password-stdin
 
                         echo "Tagging tested image..."
