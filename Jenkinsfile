@@ -36,7 +36,7 @@ stage('Docker Build and Test') {
 
             echo "Running tests inside Docker..."
             docker run --rm \
-                -v "$WORKSPACE/test-results/docker:/reports" \
+                -v "$WORKSPACE/test-results/docker" \
                 calculator-test:${BUILD_NUMBER}
 
             echo "Checking report directory after tests..."
